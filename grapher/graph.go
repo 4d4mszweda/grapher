@@ -2,29 +2,56 @@ package grapher
 
 import "fmt"
 
-// Paratygmats:
-
 type Graph struct {
-	name  string
-	nodes *[]node
+	name    string
+	vertexs *[]vertex
 }
 
 func InitGraph(name string) *Graph {
-	return &Graph{name: name, nodes: &[]node{}}
+	return &Graph{name: name, vertexs: &[]vertex{}}
 }
 
 func (g *Graph) Print() {
 	fmt.Println("graph name:", g.name)
-	fmt.Println(g.nodes)
 }
 
-type node struct {
+func (g *Graph) AddVertex(vertexName string) *vertex {
+	return &vertex{}
+}
+
+// vertex
+type vertex struct {
+	edges map[int32]*[]*vertex
 	id    int64
-	edges *[]node
+	label string
 }
 
-func (g *Graph) AddNode(n node) *node {
-	return &n
-}
+// AddEdgeMannual - add manual spcifed edge
+func (v *vertex) AddEdgeManual(vertex *vertex, weight int32, isDirected bool) {}
 
-// func (n *node) AddEdge(e edge) *node {}
+// AddEdge - add edge beetwen two vertices
+func (v *vertex) AddEdge(vertex *vertex) {}
+
+// AddDirectedEdge - add edge from receiver to argument (but not from argument to receiver)
+func (v *vertex) AddDirectedEdge(vertex *vertex) {}
+
+// AddEdgeW - add edge with specifed weight beetwen two vertices
+func (v *vertex) AddEdgeW(vertex *vertex, weight int32) {}
+
+// AddDirectedEdgeW - add edge with specifed weight from receiver to vertex in argument
+func (v *vertex) AddDirectedEdgeW(vertex *vertex, weight int32) {}
+
+// RemoveEdgeManual - remove manual spcifed edge
+func (v *vertex) RemoveEdgeManual(vertex *vertex, weight int32, isDirected bool) {}
+
+// RemoveEdge - remove edge beetwen two vertices
+func (v *vertex) RemoveEdge(vertex *vertex) {}
+
+// RemoveDirectedEdge - remove edge from receiver to argument (but not from argument to receiver)
+func (v *vertex) RemoveDirectedEdge(vertex *vertex) {}
+
+// RemoveEdgeW - remove edge with specifed weight beetwen two vertices
+func (v *vertex) RemoveEdgeW(vertex *vertex) {}
+
+// AddDirectedEdgeW - add edge with specifed weight from receiver to vertex in argument
+func (v *vertex) RemoveDirectedEdgeW(vertex *vertex) {}
