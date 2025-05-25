@@ -1,6 +1,9 @@
 package grapher
 
-import "fmt"
+import (
+	"fmt"
+	"sort"
+)
 
 type Graph struct {
 	name    string
@@ -13,10 +16,41 @@ func InitGraph(name string) *Graph {
 
 func (g *Graph) Print() {
 	fmt.Println("graph name:", g.name)
+	if g.vertexs == nil || len(*g.vertexs) == 0 {
+		fmt.Println("  (empty graph)")
+		return
+	}
+	for _, v := range *g.vertexs {
+		fmt.Printf("  Vertex %d [%s]:", v.id, v.label)
+		edgesOut := []string{}
+		for weight, neighbors := range v.edges {
+			for _, n := range *neighbors {
+				edgesOut = append(edgesOut, fmt.Sprintf(" --%d--> %d[%s]", weight, n.id, n.label))
+			}
+		}
+		if len(edgesOut) == 0 {
+			fmt.Print(" (no edges)")
+		} else {
+			for _, e := range edgesOut {
+				fmt.Print(e)
+			}
+		}
+		fmt.Println()
+	}
 }
 
-func (g *Graph) AddVertex(vertexName string) *vertex {
-	return &vertex{}
+// AddVertex - add vertex to graph
+func (g *Graph) AddVertex(label string) *vertex {
+	if g.vertexs == nil {
+		g.vertexs = &[]vertex{}
+	}
+	v := &vertex{
+		id:    int64(len(*g.vertexs)),
+		label: label,
+		edges: make(map[int32]*[]*vertex),
+	}
+	*g.vertexs = append(*g.vertexs, *v)
+	return v
 }
 
 // vertex
@@ -27,31 +61,87 @@ type vertex struct {
 }
 
 // AddEdgeMannual - add manual spcifed edge
-func (v *vertex) AddEdgeManual(vertex *vertex, weight int32, isDirected bool) {}
+func (v *vertex) AddEdgeManual(u *vertex, weight int32, isDirected bool) {
+	if v.edges[weight] == nil {
+		v.edges[weight] = &[]*vertex{}
+	}
+	*v.edges[weight] = append(*v.edges[weight], u)
+	sort.Slice(*v.edges[weight], func(i, j int) bool {
+		return (*v.edges[weight])[i].id < (*v.edges[weight])[j].id
+	})
+
+	if !isDirected {
+		if u.edges[weight] == nil {
+			u.edges[weight] = &[]*vertex{}
+		}
+		*u.edges[weight] = append(*u.edges[weight], v)
+		sort.Slice(*u.edges[weight], func(i, j int) bool {
+			return (*u.edges[weight])[i].id < (*u.edges[weight])[j].id
+		})
+	}
+}
 
 // AddEdge - add edge beetwen two vertices
-func (v *vertex) AddEdge(vertex *vertex) {}
+func (v *vertex) AddEdge(u *vertex) {
+	v.AddEdgeManual(u, 1, false)
+}
 
 // AddDirectedEdge - add edge from receiver to argument (but not from argument to receiver)
-func (v *vertex) AddDirectedEdge(vertex *vertex) {}
+func (v *vertex) AddDirectedEdge(u *vertex) {
+	v.AddEdgeManual(u, 1, true)
+}
 
 // AddEdgeW - add edge with specifed weight beetwen two vertices
-func (v *vertex) AddEdgeW(vertex *vertex, weight int32) {}
+func (v *vertex) AddEdgeW(u *vertex, weight int32) {
+	v.AddEdgeManual(u, weight, false)
+}
 
 // AddDirectedEdgeW - add edge with specifed weight from receiver to vertex in argument
-func (v *vertex) AddDirectedEdgeW(vertex *vertex, weight int32) {}
+func (v *vertex) AddDirectedEdgeW(u *vertex, weight int32) {
+	v.AddEdgeManual(u, weight, true)
+}
 
 // RemoveEdgeManual - remove manual spcifed edge
-func (v *vertex) RemoveEdgeManual(vertex *vertex, weight int32, isDirected bool) {}
+func (v *vertex) RemoveEdgeManual(u *vertex, weight int32, isDirected bool) {
+	if neighbors, ok := v.edges[weight]; ok {
+		newNeighbors := make([]*vertex, 0, len(*neighbors))
+		for _, n := range *neighbors {
+			if n.id != u.id {
+				newNeighbors = append(newNeighbors, n)
+			}
+		}
+		*neighbors = newNeighbors
+	}
+
+	if !isDirected {
+		if neighbors, ok := u.edges[weight]; ok {
+			newNeighbors := make([]*vertex, 0, len(*neighbors))
+			for _, n := range *neighbors {
+				if n.id != v.id {
+					newNeighbors = append(newNeighbors, n)
+				}
+			}
+			*neighbors = newNeighbors
+		}
+	}
+}
 
 // RemoveEdge - remove edge beetwen two vertices
-func (v *vertex) RemoveEdge(vertex *vertex) {}
+func (v *vertex) RemoveEdge(u *vertex) {
+	v.RemoveEdgeManual(u, 1, false)
+}
 
 // RemoveDirectedEdge - remove edge from receiver to argument (but not from argument to receiver)
-func (v *vertex) RemoveDirectedEdge(vertex *vertex) {}
+func (v *vertex) RemoveDirectedEdge(u *vertex) {
+	v.RemoveEdgeManual(u, 1, true)
+}
 
 // RemoveEdgeW - remove edge with specifed weight beetwen two vertices
-func (v *vertex) RemoveEdgeW(vertex *vertex) {}
+func (v *vertex) RemoveEdgeW(u *vertex, weight int32) {
+	v.RemoveEdgeManual(u, weight, false)
+}
 
-// AddDirectedEdgeW - add edge with specifed weight from receiver to vertex in argument
-func (v *vertex) RemoveDirectedEdgeW(vertex *vertex) {}
+// RemoveDirectedEdgeW - remove edge with specifed weight from receiver to vertex in argument
+func (v *vertex) RemoveDirectedEdgeW(u *vertex, weight int32) {
+	v.RemoveEdgeManual(u, weight, true)
+}
