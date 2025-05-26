@@ -6,16 +6,32 @@ import (
 )
 
 type Graph struct {
-	name    string
-	vertexs *[]vertex
+	name      string
+	vertexs   *[]vertex
+	graphType GraphType
+}
+
+type GraphType struct {
+	GraphType []string
+	Actual    bool
 }
 
 func InitGraph(name string) *Graph {
 	return &Graph{name: name, vertexs: &[]vertex{}}
 }
 
+func (g *Graph) GetGraphType() []string {
+	if g.graphType.Actual {
+		return g.graphType.GraphType
+	}
+
+	// TODO: finish calssification algorithms
+	return []string{}
+}
+
 func (g *Graph) Print() {
 	fmt.Println("graph name:", g.name)
+	fmt.Println("it's a ", g.graphType)
 	if g.vertexs == nil || len(*g.vertexs) == 0 {
 		fmt.Println("  (empty graph)")
 		return
@@ -58,6 +74,10 @@ type vertex struct {
 	edges map[int32]*[]*vertex
 	id    int64
 	label string
+}
+
+func (v *vertex) GetId() int64 {
+	return v.id
 }
 
 // AddEdgeMannual - add manual spcifed edge
