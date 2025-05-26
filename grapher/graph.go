@@ -8,12 +8,12 @@ import (
 type Graph struct {
 	name      string
 	vertexs   *[]vertex
-	graphType GraphType
+	graphType graphType
 }
 
-type GraphType struct {
-	GraphType []string
-	Actual    bool
+type graphType struct {
+	graphTypes []string
+	current    bool
 }
 
 func InitGraph(name string) *Graph {
@@ -21,8 +21,8 @@ func InitGraph(name string) *Graph {
 }
 
 func (g *Graph) GetGraphType() []string {
-	if g.graphType.Actual {
-		return g.graphType.GraphType
+	if g.graphType.current {
+		return g.graphType.graphTypes
 	}
 
 	// TODO: finish calssification algorithms
@@ -85,19 +85,15 @@ func (v *vertex) AddEdgeManual(u *vertex, weight int32, isDirected bool) {
 	if v.edges[weight] == nil {
 		v.edges[weight] = &[]*vertex{}
 	}
+
+	// TODO: more efficient way (structure) to add new edge
 	*v.edges[weight] = append(*v.edges[weight], u)
 	sort.Slice(*v.edges[weight], func(i, j int) bool {
 		return (*v.edges[weight])[i].id < (*v.edges[weight])[j].id
 	})
 
 	if !isDirected {
-		if u.edges[weight] == nil {
-			u.edges[weight] = &[]*vertex{}
-		}
-		*u.edges[weight] = append(*u.edges[weight], v)
-		sort.Slice(*u.edges[weight], func(i, j int) bool {
-			return (*u.edges[weight])[i].id < (*u.edges[weight])[j].id
-		})
+		u.AddEdgeManual(v, weight, false)
 	}
 }
 
@@ -123,7 +119,9 @@ func (v *vertex) AddDirectedEdgeW(u *vertex, weight int32) {
 
 // RemoveEdgeManual - remove manual spcifed edge
 func (v *vertex) RemoveEdgeManual(u *vertex, weight int32, isDirected bool) {
+	// TODO: return error ??
 	if neighbors, ok := v.edges[weight]; ok {
+		// TODO: more efficent way (structure) to remove edge?
 		newNeighbors := make([]*vertex, 0, len(*neighbors))
 		for _, n := range *neighbors {
 			if n.id != u.id {
@@ -134,15 +132,7 @@ func (v *vertex) RemoveEdgeManual(u *vertex, weight int32, isDirected bool) {
 	}
 
 	if !isDirected {
-		if neighbors, ok := u.edges[weight]; ok {
-			newNeighbors := make([]*vertex, 0, len(*neighbors))
-			for _, n := range *neighbors {
-				if n.id != v.id {
-					newNeighbors = append(newNeighbors, n)
-				}
-			}
-			*neighbors = newNeighbors
-		}
+		u.RemoveEdgeManual(v, weight, false)
 	}
 }
 
