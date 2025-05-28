@@ -34,6 +34,7 @@ func (g *Graph) Print() {
 	fmt.Println("it's a ", g.graphType)
 	if g.vertexs == nil || len(*g.vertexs) == 0 {
 		fmt.Println("  (empty graph)")
+		
 		return
 	}
 	for _, v := range *g.vertexs {
